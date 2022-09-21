@@ -38,12 +38,12 @@ jobs:
       run: echo "##[set-output name=owner;]$(echo ${GITHUB_REPOSITORY%/*})"
       id: extract_owner
       
-    - name: Checkout common workflows repo
+    - name: Checkout config repo
       uses: actions/checkout@v3
       with:
-        repository: ${{ steps.extract_owner.outputs.owner }}/jc-workflows
+        repository: ${{ steps.extract_owner.outputs.owner }}/jsdn-devops-config
         ref: main
-        path: jc-workflows
+        path: devops-config
         
     - uses: actions/setup-java@v3
       with:
@@ -58,7 +58,7 @@ jobs:
                 
     - name: Copy settings.xml
       run: |
-       cp jc-workflows/conf/settings.xml ~/.m2/settings.xml
+       cp devops-config/.m2/settings.xml ~/.m2/settings.xml
         
     - name: Add hosts to /etc/hosts
       run: |
