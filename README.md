@@ -1,1 +1,1 @@
-# jsdn-devops-workflows
+# js-workflows

@@ -1,0 +1,73 @@
+# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+
+name: Maven CI
+
+on:  
+  workflow_call:
+          
+jobs:
+  maven-ci:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    name: Maven CI
+    continue-on-error: false
+    env:
+      SERVER_WEBSITE_USER: ${{ secrets.SERVER_WEBSITE_USER }}
+      SERVER_WEBSITE_PASSWORD: ${{ secrets.SERVER_WEBSITE_PASSWORD }}
+      SERVER_MAVEN_REPO_USER: ${{ secrets.SERVER_MAVEN_REPO_USER }}
+      SERVER_MAVEN_REPO_PASSWORD: ${{ secrets.SERVER_MAVEN_REPO_PASSWORD }}
+      SERVER_SONATYPE_NEXUS_SNAPSHOTS_USER: ${{ secrets.SERVER_SONATYPE_NEXUS_SNAPSHOTS_USER }}
+      SERVER_SONATYPE_NEXUS_SNAPSHOTS_PASSWORD: ${{ secrets.SERVER_SONATYPE_NEXUS_SNAPSHOTS_PASSWORD }}
+      SERVER_SONATYPE_NEXUS_STAGING_USER: ${{ secrets.SERVER_SONATYPE_NEXUS_STAGING_USER }}
+      SERVER_SONATYPE_NEXUS_STAGING_PASSWORD: ${{ secrets.SERVER_SONATYPE_NEXUS_STAGING_PASSWORD }}
+      SERVER_SCM_USER: ${{ secrets.SERVER_SCM_USER }}
+      SERVER_SCM_PASSWORD: ${{ secrets.SERVER_SCM_PASSWORD }}
+      SERVER_BUILD_REPO_USER: ${{ secrets.SERVER_BUILD_REPO_USER }}
+      SERVER_BUILD_REPO_PASSWORD: ${{ secrets.SERVER_BUILD_REPO_PASSWORD }}
+      ARTIFACTORY_REPO_URL: ${{ secrets.ARTIFACTORY_REPO_URL }}
+      SERVER_SCM_ID: ${{ secrets.SERVER_SCM_ID }}
+    steps:
+    - name: Checkout build repo
+      uses: actions/checkout@v3
+      
+    - name: Extract owner
+      shell: bash
+      run: echo "##[set-output name=owner;]$(echo ${GITHUB_REPOSITORY%/*})"
+      id: extract_owner
+      
+    - name: Checkout common workflows repo
+      uses: actions/checkout@v3
+      with:
+        repository: ${{ steps.extract_owner.outputs.owner }}/jc-workflows
+        ref: main
+        path: jc-workflows
+        
+    - uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '7'
+        cache: 'maven'
+    
+    - name: Set up maven
+      uses: stCarolas/setup-maven@v4.4
+      with:
+          maven-version: 3.6.3
+                
+    - name: Copy settings.xml
+      run: |
+       cp jc-workflows/conf/settings.xml ~/.m2/settings.xml
+        
+    - name: Add hosts to /etc/hosts
+      run: |
+       sudo echo "174.129.245.22 mavenrepo.jstpl.com" | sudo tee -a /etc/hosts
+      
+    - name: Build with Maven
+      run: |
+       mvn clean install
+                         
+    - name: Publish
+      run: | 
+        mvn deploy
