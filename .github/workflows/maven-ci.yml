@@ -43,6 +43,7 @@ jobs:
       with:
         repository: ${{ steps.extract_owner.outputs.owner }}/jsdn-devops-config
         ref: main
+        token: ${{ secrets.GH_PAT }}
         path: devops-config
         
     - uses: actions/setup-java@v3
