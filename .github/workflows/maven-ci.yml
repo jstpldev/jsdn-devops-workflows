@@ -73,8 +73,23 @@ jobs:
       
     - name: Build
       run: |
-       mvn clean install
-                         
+       mvn clean install  
+   
+    - name: Get publish info
+      id: publish_info
+      run: |
+        project_verison=$(grep "<version>" pom.xml | head -1 | sed -e 's/^ *<version>\(.*\)<\/version> *$/\1/')
+        echo "Retrived project verison as $project_verison"
+        id='releases'
+        repo='libs-release'
+        if [[ $project_verison =~ "SNAPSHOT" ]]; then
+            id='snapshots'
+            repo='libs-snapshot'
+        fi
+        echo "##[set-output name=id;]$(echo $id)"
+        echo "##[set-output name=repo;]$(echo $repo)"
+        
     - name: Publish
       run: | 
-        mvn deploy
+        echo "Publish using id as ${{ steps.publish_info.outputs.id }} and repo as ${{ steps.publish_info.outputs.repo }}"
+        mvn deploy -DaltDeploymentRepository=${{ steps.publish_info.outputs.id }}::default::http://mavenrepo.jstpl.com/artifactory/${{ steps.publish_info.outputs.repo }}
