@@ -10,7 +10,7 @@ This workflow executes below steps:
 * **Config checkout**: This checksout the code from common [devops config repository](https://github.com/JMCRACKER/jsdn-devops-config). This is to get the maven *settings.xml* and pmd *rules.xml*
 * **Setup Java**: This sets up Java 7
 * **Setup Maven** : This sets up maven 3.6
-* **Setup settings xml** : This copies *settings.xml* from config repo to .m2 folder
+* **Setup settings xml** : This copies *settings.xml* from config repo to *.m2* folder
 * **Static code analysis** : This executes the code analysis by PMD and publishes the found issues to current action run.
 * **Build**: Executes maven build
 * **Publish**: Executes maven deploy
