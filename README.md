@@ -1,4 +1,4 @@
-#JS Workflows
+# JC Workflows
 
 This repository contains reusable Github workflows for JC. 
 This has below workflows
