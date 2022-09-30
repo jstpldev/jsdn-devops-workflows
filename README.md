@@ -15,6 +15,10 @@ This workflow executes below steps:
 * **Build**: Executes maven build
 * **Publish**: Executes maven deploy
 
+### Parameters:
+_analysis_: *true* or *false*. This is to set whether PMD static analysis is to be run  (Default false. it will not run static analysis)
+_verbose_: *true* or *false*. This is to verbose output for maven commands (Default false. it will run in the quiet mode)
+
 ### Calling this workflow
 This workflow can be called by other repos for their ci.
 In any jave codebase repo, add a workflow yaml file under .github/workflows/ with below content.
@@ -23,6 +27,9 @@ jobs:
   build-publish:
       uses: JMCRACKER/jsdn-devops-workflows/.github/workflows/maven-ci.yml@main
       secrets: inherit
+      with:
+        analysis: false
+        verbose: false
 ```
 
 Example with full yml
@@ -48,4 +55,7 @@ jobs:
   build-publish:
       uses: JMCRACKER/jsdn-devops-workflows/.github/workflows/maven-ci.yml@main
       secrets: inherit
+      with:
+        analysis: false
+        verbose: false
 ```
