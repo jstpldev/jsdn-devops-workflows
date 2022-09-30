@@ -5,6 +5,17 @@ name: CI
 
 on:  
   workflow_call:
+    inputs:
+      analysis:
+        description: Whether to run static analysis
+        type: boolean
+        required: false
+        default: false
+      verbose:
+        description: Whether to run mvn commands in verbose mode
+        type: boolean
+        required: false
+        default: false
           
 jobs:
   maven-ci:
@@ -29,6 +40,7 @@ jobs:
       SERVER_BUILD_REPO_PASSWORD: ${{ secrets.SERVER_BUILD_REPO_PASSWORD }}
       ARTIFACTORY_REPO_URL: ${{ secrets.ARTIFACTORY_REPO_URL }}
       SERVER_SCM_ID: ${{ secrets.SERVER_SCM_ID }}
+      
     steps:
     - name: Checkout build repo
       uses: actions/checkout@v3
@@ -66,14 +78,26 @@ jobs:
       run: |
        sudo echo "174.129.245.22 mavenrepo.jstpl.com" | sudo tee -a /etc/hosts
        
-    - name: Static code analysis (PMD)
+    - name: "Set mvn flags"
+      id: mvn_options
+      env:
+        VERBOSE_FLAG: ${{ inputs.verbose}}
+      run: |
+        flag='-q'
+        if ${VERBOSE_FLAG} == true; then
+           flag='-X'
+        fi
+        echo "##[set-output name=flag;]$(echo $flag)"
+       
+    - name: Static code analysis
+      if: ${{ inputs.analysis == true }}
       uses: pmd/pmd-github-action@v1
       with:
         rulesets: 'devops-config/pmd/rules.xml'
       
     - name: Build
       run: |
-       mvn clean install  
+       mvn clean install ${{ steps.mvn_options.outputs.flag }} 
    
     - name: Get publish settings
       id: publish_settings
@@ -92,4 +116,4 @@ jobs:
     - name: Publish
       run: | 
         echo "Publish using id as ${{ steps.publish_settings.outputs.id }} and repo as ${{ steps.publish_settings.outputs.repo }}"
-        mvn deploy -DaltDeploymentRepository=${{ steps.publish_settings.outputs.id }}::default::http://mavenrepo.jstpl.com/artifactory/${{ steps.publish_settings.outputs.repo }}
+        mvn deploy -DaltDeploymentRepository=${{ steps.publish_settings.outputs.id }}::default::http://mavenrepo.jstpl.com/artifactory/${{ steps.publish_settings.outputs.repo }} ${{ steps.mvn_options.outputs.flag }}
