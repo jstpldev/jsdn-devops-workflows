@@ -17,7 +17,7 @@ This workflow executes below steps:
 
 ### Parameters
 * __analysis__: *true* or *false*. This is to set whether PMD static analysis is to be run  (Default is *false*. it will not run static analysis)
-* __verbose__: *true* or *false*. This is to verbose output for maven commands (Default is *false*. it will run in the quiet mode)
+* __verbose__: *true* or *false*. This is to set verbose output for maven commands (Default is *false*. it will run in the quiet mode)
 
 ### Calling this workflow
 This workflow can be called by other repos for their ci.
