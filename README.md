@@ -16,8 +16,8 @@ This workflow executes below steps:
 * **Publish**: Executes maven deploy
 
 ### Parameters:
-_analysis_: *true* or *false*. This is to set whether PMD static analysis is to be run  (Default false. it will not run static analysis)
-_verbose_: *true* or *false*. This is to verbose output for maven commands (Default false. it will run in the quiet mode)
+* _analysis_: *true* or *false*. This is to set whether PMD static analysis is to be run  (Default false. it will not run static analysis)
+* _verbose_: *true* or *false*. This is to verbose output for maven commands (Default false. it will run in the quiet mode)
 
 ### Calling this workflow
 This workflow can be called by other repos for their ci.
