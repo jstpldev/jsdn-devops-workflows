@@ -93,13 +93,13 @@ jobs:
           dir_names: "true"
 
       - name: Build all changed folders
-        if: ${{ github.event_name != 'workflow_dispatch' }}
+        if: ${{ github.event_name != 'workflow_dispatch' && steps.changed-dirs.outputs.any_changed == 'true'}}
         run: |
           for folder in ${{ steps.changed-dirs.outputs.all_changed_files }}; do
             if [[ $folder == .* ]] ; then
-                echo "Ignoring $folder"
+                echo "#################### Ignoring folder $folder ####################"
             else
-                echo "Building $folder"
+                echo "#################### Building folder $folder ####################"
                 bash devops-config/folder-build/ci.sh $folder
             fi
           done
@@ -107,5 +107,5 @@ jobs:
       - name: Build given folder
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.folder_to_build != '' }}
         run: |
-          echo Building ${{ inputs.folder_to_build }}
+          echo "#################### Building folder ${{ inputs.folder_to_build }} ####################"
           bash devops-config/folder-build/ci.sh ${{ inputs.folder_to_build }}
