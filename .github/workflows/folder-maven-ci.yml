@@ -1,0 +1,111 @@
+name: Folder CI
+
+on:  
+  workflow_call:
+    inputs:
+      analysis:
+        description: Whether to run static analysis
+        type: boolean
+        required: false
+        default: false
+      verbose:
+        description: Whether to run mvn commands in verbose mode
+        type: boolean
+        required: false
+        default: false        
+      folder_to_build:
+        description: The folder to build
+        type: string
+        required: false
+      
+jobs:
+  folder-build:
+    runs-on: ubuntu-latest
+    name: Folders CI
+    env:
+      SERVER_WEBSITE_USER: ${{ secrets.SERVER_WEBSITE_USER }}
+      SERVER_WEBSITE_PASSWORD: ${{ secrets.SERVER_WEBSITE_PASSWORD }}
+      SERVER_MAVEN_REPO_USER: ${{ secrets.SERVER_MAVEN_REPO_USER }}
+      SERVER_MAVEN_REPO_PASSWORD: ${{ secrets.SERVER_MAVEN_REPO_PASSWORD }}
+      SERVER_SONATYPE_NEXUS_SNAPSHOTS_USER: ${{ secrets.SERVER_SONATYPE_NEXUS_SNAPSHOTS_USER }}
+      SERVER_SONATYPE_NEXUS_SNAPSHOTS_PASSWORD: ${{ secrets.SERVER_SONATYPE_NEXUS_SNAPSHOTS_PASSWORD }}
+      SERVER_SONATYPE_NEXUS_STAGING_USER: ${{ secrets.SERVER_SONATYPE_NEXUS_STAGING_USER }}
+      SERVER_SONATYPE_NEXUS_STAGING_PASSWORD: ${{ secrets.SERVER_SONATYPE_NEXUS_STAGING_PASSWORD }}
+      SERVER_SCM_USER: ${{ secrets.SERVER_SCM_USER }}
+      SERVER_SCM_PASSWORD: ${{ secrets.SERVER_SCM_PASSWORD }}
+      SERVER_BUILD_REPO_USER: ${{ secrets.SERVER_BUILD_REPO_USER }}
+      SERVER_BUILD_REPO_PASSWORD: ${{ secrets.SERVER_BUILD_REPO_PASSWORD }}
+      ARTIFACTORY_REPO_URL: ${{ secrets.ARTIFACTORY_REPO_URL }}
+      SERVER_SCM_ID: ${{ secrets.SERVER_SCM_ID }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # OR "2" -> To retrieve the preceding commit.
+
+      - name: Extract owner
+        shell: bash
+        run: echo "##[set-output name=owner;]$(echo ${GITHUB_REPOSITORY%/*})"
+        id: extract_owner
+      
+      - name: Checkout config repo
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ steps.extract_owner.outputs.owner }}/jsdn-devops-config
+          ref: main
+          token: ${{ secrets.GH_PAT }}
+          path: devops-config
+          
+      - name: Setup java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '7'
+          cache: 'maven'
+      
+      - name: Setup maven
+        uses: stCarolas/setup-maven@v4.4
+        with:
+            maven-version: 3.6.3
+                  
+      - name: Copy settings.xml
+        run: |
+          cp devops-config/.m2/settings.xml ~/.m2/settings.xml
+          
+      - name: Add hosts to /etc/hosts
+        run: |
+          sudo echo "174.129.245.22 mavenrepo.jstpl.com" | sudo tee -a /etc/hosts
+        
+      - name: "Set mvn flags"
+        id: mvn_options
+        env:
+          VERBOSE_FLAG: ${{ inputs.verbose}}
+        run: |
+          flag='-q'
+          if ${VERBOSE_FLAG} == true; then
+            flag='-X'
+          fi
+          echo "##[set-output name=flag;]$(echo $flag)"
+      
+      - name: Get changed folders
+        id: changed-dirs
+        uses: tj-actions/changed-files@v31
+        with:
+          dir_names: "true"
+
+      - name: Build all changed folders
+        if: ${{ github.event_name != 'workflow_dispatch' }}
+        run: |
+          for folder in ${{ steps.changed-dirs.outputs.all_changed_files }}; do
+            if [[ $folder == .* ]] ; then
+                echo "Ignoring $folder"
+            else
+                echo "Building $folder"
+                bash ${GITHUB_WORKSPACE}/.github/workflows/ci.sh $folder
+            fi
+          done
+
+      - name: Build given folder
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.folder_to_build != '' }}
+        run: |
+          echo Building ${{ inputs.folder_to_build }}
+          bash ${GITHUB_WORKSPACE}/.github/workflows/ci.sh ${{ inputs.folder_to_build }}
