@@ -100,7 +100,7 @@ jobs:
                 echo "Ignoring $folder"
             else
                 echo "Building $folder"
-                bash ${GITHUB_WORKSPACE}/.github/workflows/ci.sh $folder
+                bash devops-config/folder-build/ci.sh $folder
             fi
           done
 
@@ -108,4 +108,4 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.folder_to_build != '' }}
         run: |
           echo Building ${{ inputs.folder_to_build }}
-          bash ${GITHUB_WORKSPACE}/.github/workflows/ci.sh ${{ inputs.folder_to_build }}
+          bash devops-config/folder-build/ci.sh ${{ inputs.folder_to_build }}
