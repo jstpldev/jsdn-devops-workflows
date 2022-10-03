@@ -1,5 +1,5 @@
 name: Folder CI
-
+run-name: Build ${{  github.event_name == 'workflow_dispatch' && inputs.folder_to_build || 'repo changes' }}
 on:  
   workflow_call:
     inputs:
