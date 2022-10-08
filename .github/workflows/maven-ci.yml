@@ -76,7 +76,7 @@ jobs:
         
     - name: Add hosts to /etc/hosts
       run: |
-       sudo echo "174.129.245.22 mavenrepo.jstpl.com" | sudo tee -a /etc/hosts
+       sudo echo "18.235.126.9 mavenrepo.jstpl.com" | sudo tee -a /etc/hosts
        
     - name: "Set mvn flags"
       id: mvn_options
